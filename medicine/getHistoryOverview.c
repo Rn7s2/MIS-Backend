@@ -14,57 +14,43 @@
 
 #define MAX_LEN 30001
 
-int day_diff(int year_start, int month_start, int day_start,
-             int year_end, int month_end, int day_end)
+int get_max_id(void* data, int col_count,
+               char** col_contents, char** col_names)
 {
-    int y2, m2, d2;
-    int y1, m1, d1;
-
-    m1 = (month_start + 9) % 12;
-    y1 = year_start - m1 / 10;
-    d1 = 365 * y1 + y1 / 4 - y1 / 100 + y1 / 400 + (m1 * 306 + 5) / 10 + (day_start - 1);
-
-    m2 = (month_end + 9) % 12;
-    y2 = year_end - m2 / 10;
-    d2 = 365 * y2 + y2 / 4 - y2 / 100 + y2 / 400 + (m2 * 306 + 5) / 10 + (day_end - 1);
-
-    return (d2 - d1);
+    *(int*)data = atoi(col_contents[0]);
+    return 0;
 }
 
-int hash_date(const char* date)
+int get_medicine_data(void* data, int col_count,
+                      char** col_contents, char** col_names)
 {
-    char tmp[5];
-    int year, month, day;
-    strncpy(tmp, date, 4);
-    tmp[4] = '\0';
-    year = atoi(tmp);
-    strncpy(tmp, date + 5, 2);
-    tmp[2] = '\0';
-    month = atoi(tmp);
-    strncpy(tmp, date + 8, 2);
-    tmp[2] = '\0';
-    day = atoi(tmp);
-    return day_diff(2018, 1, 1, year, month, day) % MAX_LEN;
+    struct {
+        char *name;
+        char *code;
+        double price;
+    } *medicine = data;
+
+    strcpy(medicine->name, col_contents[0]);
+    strcpy(medicine->code, col_contents[1]);
+    medicine->price = atof(col_contents[2]);
+    
+    return 0;
 }
 
-int table_in[MAX_LEN];
-int table_out[MAX_LEN];
-char table_date[MAX_LEN][11];
-
-int post_select(void *data, int col_count, char** col_contents, char** col_names)
+int get_history_data(void *data, int col_count,
+                     char** col_contents, char** col_names)
 {
-    char *date = col_contents[0];
+    struct {
+        int total_in;
+        int total_out;
+    } *history = data;
+
     int number = atoi(col_contents[1]);
-    int hsdate = hash_date(date);
-
-    if(table_date[hsdate][0] == '\0') {
-        strcpy(table_date[hsdate], date);
-    }
 
     if(number > 0) {
-        table_in[hsdate] += number;
+        history->total_in += number;
     } else {
-        table_out[hsdate] -= number;
+        history->total_out -= number;
     }
     
     return 0;
@@ -79,7 +65,6 @@ int main()
     JsonParser *parser;
     GError *error = NULL;
     JsonReader *reader;
-    gint64 id;
     const gchar *start_date, *end_date;
     
     parser = json_parser_new();
@@ -95,10 +80,6 @@ int main()
     reader = json_reader_new(json_parser_get_root(parser));
     g_object_unref(parser);
 
-    json_reader_read_member(reader, "id");
-    id = json_reader_get_int_value(reader);
-    json_reader_end_member(reader);
-
     json_reader_read_member(reader, "start");
     start_date = json_reader_get_string_value(reader);
     json_reader_end_member(reader);
@@ -108,7 +89,7 @@ int main()
     json_reader_end_member(reader);
 
     sqlite3 *db;
-    int rc;
+    int rc, max_id;
     char *sql;
     char *err_msg = NULL;
     
@@ -119,60 +100,81 @@ int main()
     }
 
     sql = malloc(MAX_LEN * sizeof(char));
-    sprintf(sql,
-            "SELECT * FROM m_%ld WHERE date BETWEEN '%s' AND '%s'",
-            id,
-            start_date,
-            end_date);
-    rc = sqlite3_exec(db, sql, post_select, NULL, &err_msg);
 
+    sprintf(sql, "SELECT MAX(id) AS MAX_ID FROM medicine");
+    rc = sqlite3_exec(db, sql, get_max_id, &max_id, &err_msg);
     if(rc) {
         fputs(err_msg, stderr);
         sqlite3_free(err_msg);
         return 1;
     }
 
+    puts("Content-type: application/json\n");
+    putchar('[');
+
+    int is_started = 0;
+    for(int id = 1; id <= max_id; id++) {        
+        struct {
+            char *name;
+            char *code;
+            double price;
+        } medicine;
+        medicine.name = malloc(MAX_LEN * sizeof(char));
+        medicine.code = malloc(MAX_LEN * sizeof(char));
+        
+        sprintf(sql, "SELECT name,code,price FROM medicine WHERE id=%d", id);
+        rc = sqlite3_exec(db, sql, get_medicine_data, &medicine, &err_msg);
+        if(rc) {
+            fputs(err_msg, stderr);
+            sqlite3_free(err_msg);
+            return 1;
+        }
+        
+        struct {
+            int total_in;
+            int total_out;
+        } history;
+        history.total_in = 0;
+        history.total_out = 0;
+        
+        sprintf(sql,
+                "SELECT * FROM m_%d WHERE date BETWEEN '%s' AND '%s'",
+                id,
+                start_date,
+                end_date);
+        rc = sqlite3_exec(db, sql, get_history_data, &history, &err_msg);
+        if(rc) {
+            fputs(err_msg, stderr);
+            sqlite3_free(err_msg);
+            return 1;
+        }
+
+        if(history.total_in || history.total_out) {
+            if(is_started) {
+                putchar(',');
+            }
+            if(!is_started) {
+                is_started = 1;
+            }
+            printf("{\"id\":%d,\"name\":\"%s\",\"code\":\"%s\","
+                   "\"price\":%lf,\"in\":%d,\"out\":%d}",
+                   id,
+                   medicine.name,
+                   medicine.code,
+                   medicine.price,
+                   history.total_in,
+                   history.total_out);
+        }
+        
+        free(medicine.name);
+        free(medicine.code);
+    }
+
+    putchar(']');
+
     free(sql);
     sqlite3_close(db);
     g_object_unref(reader);
-
-    int hsstart_date = hash_date(start_date);
-    int hsend_date = hash_date(end_date);
-
-    int total_in = 0;
-    int total_out = 0;
-    int row_count = 0;
-    
-    for(int i = hsstart_date; i <= hsend_date; i++) {
-        if(table_date[i][0] == '\0') {
-            continue;
-        }
-        total_in += table_in[i];
-        total_out += table_out[i];
-        row_count++;
-    }
-    
-    puts("Content-type: application/json\n");
-
-    printf("{\"stockIn\":%d,\"stockOut\":%d,\"history\":[",
-           total_in,
-           total_out);
-
-    for(int i = hsstart_date, cnt = 0; i <= hsend_date; i++) {
-        if(table_date[i][0] == '\0') {
-            continue;
-        }
-        printf("{\"date\":\"%s\",\"in\":%d,\"out\":%d}",
-               table_date[i],
-               table_in[i],
-               table_out[i]);
-        cnt++;
-        if(cnt != row_count) {
-            putchar(',');
-        }
-    }
-
-    printf("]}");
     
     return 0;
 }

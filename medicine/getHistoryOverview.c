@@ -1,8 +1,8 @@
 /******************************************************************************
- * Filename: getHistoryByID.c
+ * Filename: getHistoryOverview.c
  * Author:   雷瑞祺
  * License:  MIT License
- * Purpose:  handle get history by ID http request
+ * Purpose:  handle get history overview http request
  ******************************************************************************/
 
 #include <stdio.h>

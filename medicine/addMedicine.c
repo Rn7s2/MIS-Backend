@@ -1,8 +1,8 @@
 /******************************************************************************
- * Filename: increaseMedicine.c
+ * Filename: addMedicine.c
  * Author:   雷瑞祺
  * License:  MIT License
- * Purpose:  handle increase medicine http request
+ * Purpose:  handle add medicine http request
  ******************************************************************************/
 
 #include <stdio.h>
@@ -44,35 +44,51 @@ int main()
         char *dosage;
     } medicine;
 
-    medicine.xxx = malloc(MAX_LEN * sizeof(char)); // 分配内存
-
     json_reader_read_member(reader, "name");
-    // xxx =xxx 赋值
+    medicine.name = json_reader_get_string_value(reader);
     json_reader_end_member(reader);
 
     json_reader_read_member(reader, "code");
-    
+    medicine.code = json_reader_get_string_value(reader);
     json_reader_end_member(reader);
 
     json_reader_read_member(reader, "number");
-    
+    medicine.number = (int)json_reader_get_int_value(reader);
     json_reader_end_member(reader);
 
     json_reader_read_member(reader, "unit");
-    
+    medicine.unit = json_reader_get_string_value(reader);
     json_reader_end_member(reader);
 
     json_reader_read_member(reader, "price");
-    
+    medicine.price = json_reader_get_double_value(reader);
     json_reader_end_member(reader);
 
     json_reader_read_member(reader, "expiration");
-    
+    medicine.expiration = json_reader_get_string_value(reader);
     json_reader_end_member(reader);
 
     json_reader_read_member(reader, "dosage");
-    
+    medicine.dosage = json_reader_get_string_value(reader);
     json_reader_end_member(reader);
+
+    printf("The posted new medicine information:\n"
+           "name: %s\n"
+           "code: %s\n"
+           "number: %d\n"
+           "unit: %s\n"
+           "price: %lf\n"
+           "expiration: %s\n"
+           "dosage: %s\n",
+           medicine.name,
+           medicine.code,
+           medicine.number,
+           medicine.unit,
+           medicine.price,
+           medicine.expiration,
+           medicine.dosage);
+
+    g_object_unref(reader);
     
     return 0;
 }

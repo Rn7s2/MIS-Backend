@@ -1,5 +1,6 @@
 # MIS-Backend
-MIS的服务器后端，使用C、CGI、Glib和JSON-Glib实现。
+MIS的服务器后端。medicine模块使用C、Glib和JSON-Glib作为CGI程序实现，record和
+prescription模块使用Common Lisp作为CGI程序实现。
 
 ## 后端实现进度
 

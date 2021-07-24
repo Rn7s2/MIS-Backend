@@ -9,7 +9,7 @@ MIS的服务器后端，使用C、CGI、Glib和JSON-Glib实现。
 - [x] getHistoryOverview
 - [x] increaseMedicine
 - [x] modifyMedicine
-- [ ] addMedicine
+- [x] addMedicine
 
 ### record:
 - [ ] getAllTemplate

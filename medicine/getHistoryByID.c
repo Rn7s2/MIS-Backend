@@ -113,7 +113,7 @@ int main()
     char *sql;
     char *err_msg = NULL;
     
-    rc = sqlite3_open(DATABASE, &db);
+    rc = sqlite3_open("mis.db", &db);
     if(rc) {
         fputs(sqlite3_errmsg(db), stderr);
         return 1;
@@ -135,10 +135,11 @@ int main()
 
     free(sql);
     sqlite3_close(db);
-    g_object_unref(reader);
 
     int hsstart_date = hash_date(start_date);
     int hsend_date = hash_date(end_date);
+
+    g_object_unref(reader);
 
     int total_in = 0;
     int total_out = 0;

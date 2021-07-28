@@ -113,7 +113,7 @@ int main()
     char *sql;
     char *err_msg = NULL;
     
-    rc = sqlite3_open("mis.db", &db);
+    rc = sqlite3_open(DATABASE, &db);
     if(rc) {
         fputs(sqlite3_errmsg(db), stderr);
         return 1;

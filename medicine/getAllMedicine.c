@@ -5,6 +5,7 @@
  * Purpose:  handle get all medicine http request
  ******************************************************************************/
 
+#include "database.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sqlite3.h>
@@ -45,7 +46,7 @@ int main(int argc, char **argv)
 
     puts("Content-type: application/json\n");
 
-    ret_code = sqlite3_open("/home/www/mis.db", &db);
+    ret_code = sqlite3_open(DATABASE, &db);
     if(ret_code) {
         fprintf(stderr, "Failed to open SQLite Database: %s\n", sqlite3_errmsg(db));
         return 1;

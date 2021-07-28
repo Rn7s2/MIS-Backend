@@ -5,6 +5,7 @@
  * Purpose:  handle add medicine http request
  ******************************************************************************/
 
+#include "database.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -84,7 +85,7 @@ int main()
     char *sql;
     char *err_msg = NULL;
 
-    rc = sqlite3_open("/home/www/mis.db", &db);
+    rc = sqlite3_open(DATABASE, &db);
     if(rc) {
         fputs(sqlite3_errmsg(db), stderr);
         return 1;

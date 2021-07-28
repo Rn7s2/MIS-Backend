@@ -5,6 +5,7 @@
  * Purpose:  handle increase medicine http request
  ******************************************************************************/
 
+#include "database.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -66,7 +67,7 @@ int main(int argc, char **argv)
     g_object_unref(parser);
     
     // open database
-    rc = sqlite3_open("/home/www/mis.db", &db);
+    rc = sqlite3_open(DATABASE, &db);
 
     if(rc) {
         fprintf(ferr, "Failed to open database: %s\n", sqlite3_errmsg(db));

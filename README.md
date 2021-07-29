@@ -13,20 +13,20 @@ prescription模块使用Racket作为CGI程序实现。
 - [x] addMedicine
 
 ### record:
-- [ ] getAllTemplate
-- [ ] modifyTemplate
-- [ ] addTemplate
-- [ ] deleteTemplate
-- [ ] addRecord
-- [ ] getRecordList
-- [ ] getRecordByID
-- [ ] modifyRecordByID
-- [ ] deleteRecordByID
+- [x] getAllTemplate
+- [x] modifyTemplate
+- [x] addTemplate
+- [x] deleteTemplate
+- [x] addRecord
+- [x] getRecordList
+- [x] getRecordByID
+- [x] modifyRecordByID
+- [x] deleteRecordByID
 
 ### prescription:
-- [ ] getPrescriptionList
-- [ ] addPrescription
-- [ ] deletePrescription
-- [ ] getPrescriptionByID
-- [ ] getPendingPrescriptionList
-- [ ] handlePrescription
+- [x] getPrescriptionList
+- [x] addPrescription
+- [x] deletePrescription
+- [x] getPrescriptionByID
+- [x] getPendingPrescriptionList
+- [x] handlePrescription

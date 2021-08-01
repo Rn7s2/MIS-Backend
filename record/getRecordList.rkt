@@ -1,11 +1,11 @@
-#!/usr/local/bin/racket
+#!/usr/bin/racket
 #lang racket/base
 
 (require srfi/13)
 (require json)
 (require db)
 
-(define mis (sqlite3-connect #:database "/home/www/mis.db"))
+(define mis (sqlite3-connect #:database "/var/lib/wwwrun/mis.db"))
 
 (define all-record-data (query-rows mis "SELECT * FROM record"))
 

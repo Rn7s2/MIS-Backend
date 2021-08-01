@@ -1,14 +1,17 @@
-#!/usr/local/bin/racket
+#!/usr/bin/racket
 #lang racket/base
 
 (require srfi/13)
 (require json)
 (require db)
 
-(define mis (sqlite3-connect #:database "/home/www/mis.db"))
+(define mis (sqlite3-connect #:database "/var/lib/wwwrun/mis.db"))
 
 (define text (hash-ref (read-json) 'text))
-(define id (+ 1 (query-value mis "SELECT MAX(id) FROM record")))
+(define id (let ([tmp (query-value mis "SELECT MAX(id) FROM record")])
+             (if (number? tmp)
+                 tmp
+                 1)))
 
 (define (set-content key val)
   (define str (substring text (string-contains text (string-append key "："))))
@@ -24,7 +27,7 @@
                  val
                  (substring begin-str (string-contains begin-str "<"))))
 
-(query-exec mis "INSERT INTO record (`content`) VALUES ($1)" (set-content "就诊号" (number->string id)))
+(query-exec mis "INSERT INTO record VALUES ($1,$2)" id (set-content "就诊号" (number->string id)))
 
 (display "Content-type: text/html\n\n")
 

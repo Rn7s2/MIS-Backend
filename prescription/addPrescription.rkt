@@ -1,10 +1,10 @@
-#!/usr/local/bin/racket
+#!/usr/bin/racket
 #lang racket/base
 
 (require json)
 (require db)
 
-(define mis (sqlite3-connect #:database "/home/www/mis.db"))
+(define mis (sqlite3-connect #:database "/var/lib/wwwrun/mis.db"))
 
 (define prescription (read-json))
 (define date (hash-ref prescription 'date))
@@ -33,6 +33,7 @@
                         (hash-ref patient 'diagnosis))])
 
 (define id (query-value mis "SELECT MAX(id) AS MAX_ID FROM prescription"))
+
 (define table (string-append "p_" (number->string id)))
 
 (query-exec mis (string-append "CREATE TABLE "
